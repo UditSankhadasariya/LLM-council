@@ -13,7 +13,8 @@ import json
 import asyncio
 
 from . import storage
-from .council import run_full_council, generate_conversation_title, stage1_collect_responses, stage2_synthesize_final
+from .council import run_full_council, generate_conversation_title, stage1_collect_responses, stage1_collect_responses_progressive, stage2_synthesize_final
+from .config import COUNCIL_MODELS
 from .browser import BrowserProviderManager
 from .llm_client import set_browser_manager
 
@@ -175,9 +176,15 @@ async def send_message_stream(conversation_id: str, request: SendMessageRequest)
             if is_first_message:
                 title_task = asyncio.create_task(generate_conversation_title(request.content))
 
-            # Stage 1: Collect responses
-            yield f"data: {json.dumps({'type': 'stage1_start'})}\n\n"
-            stage1_results = await stage1_collect_responses(request.content)
+            # Stage 1: Collect responses progressively
+            model_names = [m["name"] for m in COUNCIL_MODELS]
+            yield f"data: {json.dumps({'type': 'stage1_start', 'data': {'models': model_names}})}\n\n"
+
+            stage1_results = []
+            async for result in stage1_collect_responses_progressive(request.content):
+                stage1_results.append(result)
+                yield f"data: {json.dumps({'type': 'stage1_model_complete', 'data': result})}\n\n"
+
             yield f"data: {json.dumps({'type': 'stage1_complete', 'data': stage1_results})}\n\n"
 
             # Stage 2: Synthesize final answer

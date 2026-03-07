@@ -72,13 +72,13 @@ export default function ChatInterface({
                   <div className="message-label">LLM Council</div>
 
                   {/* Stage 1: Individual Responses */}
-                  {msg.loading?.stage1 && (
-                    <div className="stage-loading">
-                      <div className="spinner"></div>
-                      <span>Collecting individual responses...</span>
-                    </div>
+                  {(msg.stage1Models || (msg.stage1 && msg.stage1.length > 0)) && (
+                    <Stage1
+                      responses={msg.stage1 || []}
+                      expectedModels={msg.stage1Models}
+                      isLoading={msg.loading?.stage1}
+                    />
                   )}
-                  {msg.stage1 && <Stage1 responses={msg.stage1} />}
 
                   {/* Stage 2: Final Synthesis */}
                   {msg.loading?.stage2 && (

@@ -63,3 +63,41 @@
   color: #333;
   line-height: 1.6;
 }
+
+/* Progressive loading styles */
+.stage1-progress {
+  margin-left: 8px;
+  font-size: 13px;
+  font-weight: 400;
+  color: #888;
+}
+
+.tab-pending {
+  color: #aaa;
+  font-style: italic;
+}
+
+.tab-spinner {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-left: 6px;
+  border: 2px solid #ccc;
+  border-top-color: #4a90e2;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  vertical-align: middle;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.model-loading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 24px;
+  color: #888;
+  font-style: italic;
+}

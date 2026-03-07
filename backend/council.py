@@ -1,6 +1,7 @@
 """2-stage LLM Council orchestration: collect responses, then synthesize."""
 
-from typing import List, Dict, Any, Tuple
+import asyncio
+from typing import AsyncGenerator, List, Dict, Any, Tuple
 from .llm_client import query_models_parallel, query_model
 from .config import COUNCIL_MODELS, CHAIRMAN_MODEL_FALLBACK
 
@@ -49,6 +50,32 @@ async def stage1_collect_responses(user_query: str) -> List[Dict[str, Any]]:
             })
 
     return stage1_results
+
+
+async def stage1_collect_responses_progressive(user_query: str) -> AsyncGenerator[Dict[str, Any], None]:
+    """
+    Stage 1 (progressive): Yield each model's response as it completes.
+
+    Args:
+        user_query: The user's question
+
+    Yields:
+        Dicts with 'model' and 'response' keys, one per completed model
+    """
+    messages = [{"role": "user", "content": user_query}]
+    tasks = {}
+    for model_config in COUNCIL_MODELS:
+        task = asyncio.create_task(query_model(model_config, messages))
+        tasks[task] = model_config
+
+    pending = set(tasks.keys())
+    while pending:
+        done, pending = await asyncio.wait(pending, return_when=asyncio.FIRST_COMPLETED)
+        for task in done:
+            model_config = tasks[task]
+            response = task.result()
+            if response is not None:
+                yield {"model": model_config["name"], "response": response.get('content', '')}
 
 
 async def stage2_synthesize_final(
