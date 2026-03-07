@@ -118,24 +118,27 @@ async def health_check():
             }
 
         elif provider == "claude-cli":
-            # Quick check: can we run `claude --version`?
+            # Check auth status via `claude auth status`
+            auth_info = {}
+            ready = False
             try:
-                proc = await asyncio.wait_for(
-                    asyncio.create_subprocess_exec(
-                        "claude", "--version",
-                        stdout=asyncio.subprocess.PIPE,
-                        stderr=asyncio.subprocess.PIPE,
-                    ),
-                    timeout=5.0,
+                proc = await asyncio.create_subprocess_exec(
+                    "claude", "auth", "status",
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE,
                 )
                 stdout, _ = await asyncio.wait_for(proc.communicate(), timeout=5.0)
-                ready = proc.returncode == 0
+                if proc.returncode == 0:
+                    auth_info = json.loads(stdout.decode())
+                    ready = auth_info.get("loggedIn", False)
             except Exception:
-                ready = False
+                pass
             providers[model_id] = {
                 "name": name,
                 "provider": provider,
                 "ready": ready,
+                "authenticated": ready,
+                **( {"email": auth_info["email"]} if auth_info.get("email") else {} ),
             }
 
     all_ready = all(p["ready"] for p in providers.values())

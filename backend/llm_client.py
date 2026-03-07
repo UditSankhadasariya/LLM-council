@@ -79,7 +79,7 @@ async def query_claude_cli(
 
     try:
         process = await asyncio.create_subprocess_exec(
-            "claude", "-p", "--model", CLAUDE_CLI_MODEL, "--allowedTools", "WebSearch",
+            "claude", "-p", "--model", CLAUDE_CLI_MODEL, "--thinking", "enabled", "--allowedTools", "WebSearch",
             stdin=asyncio.subprocess.PIPE,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
