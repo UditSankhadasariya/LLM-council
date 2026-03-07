@@ -4,6 +4,8 @@ import time
 from abc import ABC, abstractmethod
 from typing import AsyncGenerator
 
+from markdownify import markdownify as md
+
 from .browser_manager import BrowserManager
 from .browser_config import Timeouts
 from .stealth import human_click, human_type, random_delay, send_enter
@@ -77,16 +79,15 @@ class BaseInteractor(ABC):
             await send_enter(self.tab)
 
     async def _get_response_text(self) -> str:
-        """Extract the latest assistant response text."""
+        """Extract the latest assistant response text as markdown."""
         for selector in self.selectors.assistant_response:
             try:
                 elements = await self.tab.query_selector_all(selector)
                 if elements:
                     last = elements[-1]
-                    text = await last.apply(
-                        "(el) => el.innerText || el.textContent"
-                    )
-                    if text and text.strip():
+                    html = await last.apply("(el) => el.innerHTML")
+                    if html and html.strip():
+                        text = md(html, heading_style="ATX", bullets="-")
                         return text.strip()
             except Exception:
                 pass

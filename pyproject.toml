@@ -9,6 +9,7 @@ dependencies = [
     "uvicorn[standard]>=0.32.0",
     "pydantic>=2.9.0",
     "nodriver>=0.38",
+    "markdownify>=0.14.1",
 ]
 
 [tool.setuptools.packages.find]

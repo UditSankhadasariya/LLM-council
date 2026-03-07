@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import './Stage1.css';
 
 export default function Stage1({ responses, expectedModels, isLoading }) {
@@ -58,7 +59,7 @@ export default function Stage1({ responses, expectedModels, isLoading }) {
           <>
             <div className="model-name">{activeResponse.model}</div>
             <div className="response-text markdown-content">
-              <ReactMarkdown>{activeResponse.response}</ReactMarkdown>
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{activeResponse.response}</ReactMarkdown>
             </div>
           </>
         ) : null}
