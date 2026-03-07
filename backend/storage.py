@@ -32,7 +32,7 @@ def create_conversation(conversation_id: str) -> Dict[str, Any]:
 
     conversation = {
         "id": conversation_id,
-        "created_at": datetime.utcnow().isoformat(),
+        "created_at": datetime.now().isoformat(),
         "title": "New Conversation",
         "messages": []
     }
@@ -91,7 +91,7 @@ def list_conversations(date_str: Optional[str] = None) -> List[Dict[str, Any]]:
     ensure_data_dir()
 
     if date_str is None:
-        date_str = datetime.utcnow().strftime("%Y-%m-%d")
+        date_str = datetime.now().strftime("%Y-%m-%d")
 
     conversations = []
     for filename in os.listdir(DATA_DIR):
