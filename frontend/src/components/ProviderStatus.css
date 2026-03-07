@@ -1,0 +1,134 @@
+.provider-status {
+  padding: 12px 20px;
+  border-bottom: 1px solid;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.provider-status-warning {
+  background: #fff8e1;
+  border-bottom-color: #ffe082;
+}
+
+.provider-status-error {
+  background: #ffeef0;
+  border-bottom-color: #ffb3b8;
+}
+
+.provider-status-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.provider-status-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 13px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.provider-status-warning .provider-status-icon {
+  background: #f59e0b;
+  color: #fff;
+}
+
+.provider-status-error .provider-status-icon {
+  background: #ef4444;
+  color: #fff;
+}
+
+.provider-status-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.provider-status-text strong {
+  display: block;
+  margin-bottom: 4px;
+  color: #333;
+}
+
+.provider-status-text > span {
+  color: #666;
+}
+
+.provider-status-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.provider-status-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.provider-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.provider-dot-down {
+  background: #ef4444;
+}
+
+.provider-name {
+  font-weight: 600;
+  color: #333;
+}
+
+.provider-hint {
+  color: #888;
+  font-size: 13px;
+}
+
+.provider-status-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.provider-status-retry,
+.provider-status-dismiss {
+  padding: 5px 14px;
+  border-radius: 6px;
+  border: 1px solid;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+
+.provider-status-retry {
+  background: #fff;
+  border-color: #d0d0d0;
+  color: #333;
+}
+
+.provider-status-retry:hover {
+  background: #f5f5f5;
+}
+
+.provider-status-dismiss {
+  background: transparent;
+  border-color: transparent;
+  color: #888;
+}
+
+.provider-status-dismiss:hover {
+  color: #333;
+  background: rgba(0, 0, 0, 0.05);
+}

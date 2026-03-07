@@ -13,8 +13,8 @@ import json
 import asyncio
 
 from . import storage
-from .council import run_full_council, generate_conversation_title, stage1_collect_responses, stage1_collect_responses_progressive, stage2_synthesize_final
 from .config import COUNCIL_MODELS
+from .council import run_full_council, generate_conversation_title, stage1_collect_responses, stage1_collect_responses_progressive, stage2_synthesize_final
 from .browser import BrowserProviderManager
 from .llm_client import set_browser_manager
 
@@ -86,6 +86,60 @@ class Conversation(BaseModel):
 async def root():
     """Health check endpoint."""
     return {"status": "ok", "service": "LLM Council API"}
+
+
+@app.get("/api/health")
+async def health_check():
+    """Check readiness of all configured providers."""
+    from .llm_client import _browser_manager
+
+    providers = {}
+
+    for model in COUNCIL_MODELS:
+        model_id = model["id"]
+        provider = model["provider"]
+        name = model["name"]
+
+        if provider == "browser":
+            browser_provider = model.get("browser_provider", "chatgpt")
+            ready = False
+            if _browser_manager and browser_provider in _browser_manager._providers:
+                bm = _browser_manager._providers[browser_provider]["browser"]
+                ready = bm.ready and bm.tab is not None
+            initializing = (
+                _browser_manager is not None
+                and not _browser_manager._init_done.is_set()
+            )
+            providers[model_id] = {
+                "name": name,
+                "provider": provider,
+                "ready": ready,
+                "initializing": initializing,
+            }
+
+        elif provider == "claude-cli":
+            # Quick check: can we run `claude --version`?
+            try:
+                proc = await asyncio.wait_for(
+                    asyncio.create_subprocess_exec(
+                        "claude", "--version",
+                        stdout=asyncio.subprocess.PIPE,
+                        stderr=asyncio.subprocess.PIPE,
+                    ),
+                    timeout=5.0,
+                )
+                stdout, _ = await asyncio.wait_for(proc.communicate(), timeout=5.0)
+                ready = proc.returncode == 0
+            except Exception:
+                ready = False
+            providers[model_id] = {
+                "name": name,
+                "provider": provider,
+                "ready": ready,
+            }
+
+    all_ready = all(p["ready"] for p in providers.values())
+    return {"all_ready": all_ready, "providers": providers}
 
 
 @app.get("/api/conversations", response_model=List[ConversationMetadata])

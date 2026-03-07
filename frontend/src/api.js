@@ -6,6 +6,17 @@ const API_BASE = 'http://localhost:8001';
 
 export const api = {
   /**
+   * Check health/readiness of all providers.
+   */
+  async checkHealth() {
+    const response = await fetch(`${API_BASE}/api/health`);
+    if (!response.ok) {
+      throw new Error('Failed to check health');
+    }
+    return response.json();
+  },
+
+  /**
    * List conversations for a given date (YYYY-MM-DD). Defaults to today.
    */
   async listConversations(date) {

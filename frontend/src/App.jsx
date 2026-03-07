@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import ChatInterface from './components/ChatInterface';
+import ProviderStatus from './components/ProviderStatus';
 import { api } from './api';
 import './App.css';
 
@@ -221,11 +222,14 @@ function App() {
         availableDates={availableDates}
         onDateChange={handleDateChange}
       />
-      <ChatInterface
-        conversation={currentConversation}
-        onSendMessage={handleSendMessage}
-        isLoading={isLoading}
-      />
+      <div className="main-content">
+        <ProviderStatus />
+        <ChatInterface
+          conversation={currentConversation}
+          onSendMessage={handleSendMessage}
+          isLoading={isLoading}
+        />
+      </div>
     </div>
   );
 }
