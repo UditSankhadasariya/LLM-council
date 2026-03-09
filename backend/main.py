@@ -3,9 +3,12 @@
 import logging
 from contextlib import asynccontextmanager
 
+from pathlib import Path
+
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from typing import List, Dict, Any, Optional
 import uuid
@@ -49,7 +52,7 @@ app = FastAPI(title="LLM Council API", lifespan=lifespan)
 # Enable CORS for local development
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000"],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -82,7 +85,7 @@ class Conversation(BaseModel):
     messages: List[Dict[str, Any]]
 
 
-@app.get("/")
+@app.get("/api/status")
 async def root():
     """Health check endpoint."""
     return {"status": "ok", "service": "LLM Council API"}
@@ -224,12 +227,14 @@ async def send_message_stream(conversation_id: str, request: SendMessageRequest)
     is_first_message = len(conversation["messages"]) == 0
 
     async def event_generator():
+        stage1_results = []
+        stage2_result = None
+        title_task = None
         try:
             # Add user message
             storage.add_user_message(conversation_id, request.content)
 
             # Start title generation in parallel (don't await yet)
-            title_task = None
             if is_first_message:
                 title_task = asyncio.create_task(generate_conversation_title(request.content))
 
@@ -237,7 +242,6 @@ async def send_message_stream(conversation_id: str, request: SendMessageRequest)
             model_names = [m["name"] for m in COUNCIL_MODELS]
             yield f"data: {json.dumps({'type': 'stage1_start', 'data': {'models': model_names}})}\n\n"
 
-            stage1_results = []
             async for result in stage1_collect_responses_progressive(request.content):
                 stage1_results.append(result)
                 yield f"data: {json.dumps({'type': 'stage1_model_complete', 'data': result})}\n\n"
@@ -252,6 +256,7 @@ async def send_message_stream(conversation_id: str, request: SendMessageRequest)
             # Wait for title generation if it was started
             if title_task:
                 title = await title_task
+                title_task = None
                 storage.update_conversation_title(conversation_id, title)
                 yield f"data: {json.dumps({'type': 'title_complete', 'data': {'title': title}})}\n\n"
 
@@ -266,6 +271,16 @@ async def send_message_stream(conversation_id: str, request: SendMessageRequest)
             yield f"data: {json.dumps({'type': 'complete'})}\n\n"
 
         except Exception as e:
+            logger.error(f"Stream error: {e}")
+            # Save whatever we collected so far so the conversation isn't lost
+            if stage1_results or stage2_result:
+                try:
+                    storage.add_assistant_message(conversation_id, stage1_results, stage2_result)
+                except Exception:
+                    pass
+            # Cancel pending title task
+            if title_task and not title_task.done():
+                title_task.cancel()
             # Send error event
             yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
 
@@ -277,6 +292,17 @@ async def send_message_stream(conversation_id: str, request: SendMessageRequest)
             "Connection": "keep-alive",
         }
     )
+
+
+# Serve frontend static build
+_frontend_dist = Path(__file__).resolve().parent.parent / "frontend" / "dist"
+if _frontend_dist.is_dir():
+    app.mount("/assets", StaticFiles(directory=_frontend_dist / "assets"), name="static")
+
+    @app.get("/{full_path:path}")
+    async def serve_frontend(full_path: str):
+        """Serve the React SPA for any non-API route."""
+        return FileResponse(_frontend_dist / "index.html")
 
 
 if __name__ == "__main__":

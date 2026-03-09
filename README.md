@@ -2,86 +2,171 @@
 
 ![llmcouncil](header.jpg)
 
-The idea of this repo is that instead of asking a question to your favorite LLM provider (e.g. OpenAI GPT 5.1, Google Gemini 3.0 Pro, Anthropic Claude Sonnet 4.5, xAI Grok 4, eg.c), you can group them into your "LLM Council". This repo is a simple, local web app that essentially looks like ChatGPT except it uses OpenRouter to send your query to multiple LLMs, it then asks them to review and rank each other's work, and finally a Chairman LLM produces the final response.
+Instead of asking one LLM, ask all of them — and let them collaborate on the answer.
 
-In a bit more detail, here is what happens when you submit a query:
+LLM Council is a self-hosted web app that sends your question to multiple LLMs simultaneously (ChatGPT, Gemini, Claude), displays their individual responses side by side, and then has a "Chairman" LLM synthesize everything into a single comprehensive answer. You use your own existing subscriptions — no API keys or per-token costs required.
 
-1. **Stage 1: First opinions**. The user query is given to all LLMs individually, and the responses are collected. The individual responses are shown in a "tab view", so that the user can inspect them all one by one.
-2. **Stage 2: Review**. Each individual LLM is given the responses of the other LLMs. Under the hood, the LLM identities are anonymized so that the LLM can't play favorites when judging their outputs. The LLM is asked to rank them in accuracy and insight.
-3. **Stage 3: Final response**. The designated Chairman of the LLM Council takes all of the model's responses and compiles them into a single final answer that is presented to the user.
+Originally inspired by [Karpathy's LLM Council](https://github.com/karpathy/llm-council). This fork replaces the OpenRouter API approach with direct browser automation and CLI integration, so you can use your existing ChatGPT Plus, Gemini Advanced, and Claude subscriptions at no additional cost.
 
-## Vibe Code Alert
+## How It Works
 
-This project was 99% vibe coded as a fun Saturday hack because I wanted to explore and evaluate a number of LLMs side by side in the process of [reading books together with LLMs](https://x.com/karpathy/status/1990577951671509438). It's nice and useful to see multiple responses side by side, and also the cross-opinions of all LLMs on each other's outputs. I'm not going to support it in any way, it's provided here as is for other people's inspiration and I don't intend to improve it. Code is ephemeral now and libraries are over, ask your LLM to change it in whatever way you like.
+When you submit a query, the council runs a 2-stage process:
+
+1. **Stage 1 — Individual Responses**: Your query is sent to all council members in parallel. Each LLM responds independently. Results stream in progressively as each model finishes, displayed in a tab view so you can inspect them one by one.
+
+2. **Stage 2 — Chairman Synthesis**: The council member with the largest context window is automatically selected as Chairman. It receives all individual responses and synthesizes them into a single, comprehensive answer — preserving every fact, flagging contradictions, and highlighting consensus.
+
+## Architecture
+
+The app connects to LLMs through two provider types:
+
+- **Browser providers** (ChatGPT, Gemini): Uses [nodriver](https://github.com/nichochar/nodriver) to automate Chrome, interacting with the web UIs directly. This means you use your existing paid subscriptions (ChatGPT Plus, Gemini Advanced) with no additional API costs. Each provider runs in its own Chrome instance with a persistent profile for session persistence.
+
+- **CLI provider** (Claude): Uses [Claude Code CLI](https://docs.anthropic.com/en/docs/claude-code) (`claude -p`) to query Claude Opus. Requires an active Claude subscription with CLI access.
+
+## Prerequisites
+
+- **Python 3.10+** and [uv](https://docs.astral.sh/uv/) for package management
+- **Node.js 18+** and npm
+- **Google Chrome** installed (for browser providers)
+- **Claude Code CLI** installed and authenticated (for Claude provider)
+- Active subscriptions to the LLM services you want to use (ChatGPT Plus, Gemini Advanced, Claude)
 
 ## Setup
 
-### 1. Install Dependencies
+### 1. Clone and install dependencies
 
-The project uses [uv](https://docs.astral.sh/uv/) for project management.
-
-**Backend:**
 ```bash
+git clone https://github.com/yourusername/llm-council.git
+cd llm-council
+
+# Python dependencies
 uv sync
-```
 
-**Frontend:**
-```bash
+# Frontend dependencies + production build
 cd frontend
 npm install
+npm run build
 cd ..
 ```
 
-### 2. Configure API Key
+### 2. First-time browser login
 
-Create a `.env` file in the project root:
+The browser providers need you to log in once. On first launch, Chrome windows will open for ChatGPT and Gemini. Log in to each one manually. Your sessions are saved to `~/.chatgpt_profile` and `~/.gemini_profile` so you only need to do this once.
+
+If running on a headless server (no display), use screen sharing or VNC to complete the initial login.
+
+### 3. Verify Claude CLI (if using Claude provider)
 
 ```bash
-OPENROUTER_API_KEY=sk-or-v1-...
+claude auth status
 ```
 
-Get your API key at [openrouter.ai](https://openrouter.ai/). Make sure to purchase the credits you need, or sign up for automatic top up.
+Should show `loggedIn: true`. If not, run `claude auth login`.
 
-### 3. Configure Models (Optional)
+### 4. Configure council members (optional)
 
-Edit `backend/config.py` to customize the council:
+Edit `backend/config.py` to add, remove, or change council members:
 
 ```python
 COUNCIL_MODELS = [
-    "openai/gpt-5.1",
-    "google/gemini-3-pro-preview",
-    "anthropic/claude-sonnet-4.5",
-    "x-ai/grok-4",
+    {"id": "chatgpt", "name": "ChatGPT", "provider": "browser", "browser_provider": "chatgpt", "context_window": 128_000},
+    {"id": "gemini", "name": "Gemini", "provider": "browser", "browser_provider": "gemini", "context_window": 1_000_000},
+    {"id": "claude-opus", "name": "Claude Opus", "provider": "claude-cli", "context_window": 200_000},
 ]
-
-CHAIRMAN_MODEL = "google/gemini-3-pro-preview"
 ```
 
-## Running the Application
+The model with the largest `context_window` is automatically selected as Chairman for synthesis.
 
-**Option 1: Use the start script**
+## Running
+
+### Quick start (development)
+
 ```bash
 ./start.sh
 ```
 
-**Option 2: Run manually**
+This launches the backend and a Vite dev server with color-coded logs. Access at `http://localhost:5173`.
 
-Terminal 1 (Backend):
+### Production (single process)
+
+After building the frontend (`npm run build` in `frontend/`), the backend serves everything on a single port:
+
 ```bash
 uv run python -m backend.main
 ```
 
-Terminal 2 (Frontend):
+Access at `http://localhost:8001` — or `http://<your-ip>:8001` from any device on the network.
+
+### Run as a background process
+
 ```bash
-cd frontend
-npm run dev
+nohup uv run python -m backend.main > council.log 2>&1 &
 ```
 
-Then open http://localhost:5173 in your browser.
+To stop it:
+
+```bash
+kill $(lsof -ti:8001)
+```
+
+### Headless server notes
+
+If deploying on a Mac without a display (e.g., Mac Mini/Studio as a home server):
+
+- macOS runs its window server even without a physical display, so Chrome can launch
+- You must be logged in to the macOS GUI (auto-login on boot works)
+- Use screen sharing for the one-time ChatGPT/Gemini login
+- After initial login, the browser profiles persist and no further GUI interaction is needed
+- Access the web UI from any device on your LAN at `http://<server-ip>:8001`
+
+## Ports
+
+| Service | Port | Notes |
+|---------|------|-------|
+| Backend + Frontend | 8001 | FastAPI serves both API and static frontend |
+| ChatGPT Chrome | 9222 | Chrome remote debugging port |
+| Gemini Chrome | 9223 | Chrome remote debugging port |
 
 ## Tech Stack
 
-- **Backend:** FastAPI (Python 3.10+), async httpx, OpenRouter API
-- **Frontend:** React + Vite, react-markdown for rendering
-- **Storage:** JSON files in `data/conversations/`
-- **Package Management:** uv for Python, npm for JavaScript
+- **Backend**: FastAPI, uvicorn, async Python
+- **Frontend**: React + Vite, react-markdown
+- **Browser Automation**: nodriver (undetected Chrome)
+- **Storage**: JSON files in `data/conversations/`
+- **Package Management**: uv (Python), npm (JavaScript)
+
+## Project Structure
+
+```
+llm-council/
+├── backend/
+│   ├── main.py              # FastAPI app, routes, static file serving
+│   ├── config.py             # Council member definitions
+│   ├── council.py            # 2-stage orchestration logic
+│   ├── llm_client.py         # Provider dispatcher (browser / CLI)
+│   ├── storage.py            # JSON conversation persistence
+│   └── browser/              # Chrome automation
+│       ├── provider_manager.py   # Manages browser lifecycle
+│       ├── browser_manager.py    # Chrome launch, tab management
+│       ├── chatgpt.py            # ChatGPT web UI interactor
+│       ├── gemini.py             # Gemini web UI interactor
+│       ├── browser_config.py     # Selectors, timeouts, config
+│       ├── queue_manager.py      # Request queuing per provider
+│       ├── base_interactor.py    # Shared interactor interface
+│       └── stealth.py            # Anti-detection measures
+├── frontend/
+│   ├── src/
+│   │   ├── App.jsx           # Main app, conversation management
+│   │   ├── api.js            # API client
+│   │   └── components/       # Stage1, Stage2, ChatInterface, etc.
+│   └── dist/                 # Production build (gitignored)
+├── data/conversations/       # Stored conversations (gitignored)
+├── start.sh                  # Dev launcher (backend + frontend)
+├── CLAUDE.md                 # Detailed technical notes
+└── pyproject.toml
+```
+
+## License
+
+MIT
