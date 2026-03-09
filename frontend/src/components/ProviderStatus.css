@@ -6,19 +6,21 @@
 }
 
 .provider-status-warning {
-  background: #fff8e1;
-  border-bottom-color: #ffe082;
+  background: rgba(245, 158, 11, 0.1);
+  border-bottom-color: rgba(245, 158, 11, 0.3);
 }
 
 .provider-status-error {
-  background: #ffeef0;
-  border-bottom-color: #ffb3b8;
+  background: rgba(239, 68, 68, 0.1);
+  border-bottom-color: rgba(239, 68, 68, 0.3);
 }
 
 .provider-status-content {
   display: flex;
   align-items: flex-start;
   gap: 12px;
+  max-width: var(--content-max-width);
+  margin: 0 auto;
 }
 
 .provider-status-icon {
@@ -52,11 +54,11 @@
 .provider-status-text strong {
   display: block;
   margin-bottom: 4px;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .provider-status-text > span {
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .provider-status-list {
@@ -85,11 +87,11 @@
 
 .provider-name {
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .provider-hint {
-  color: #888;
+  color: var(--text-tertiary);
   font-size: 13px;
 }
 
@@ -103,32 +105,33 @@
 .provider-status-retry,
 .provider-status-dismiss {
   padding: 5px 14px;
-  border-radius: 6px;
+  border-radius: 8px;
   border: 1px solid;
   font-size: 13px;
   font-weight: 500;
+  font-family: inherit;
   cursor: pointer;
   transition: background 0.15s;
   white-space: nowrap;
 }
 
 .provider-status-retry {
-  background: #fff;
-  border-color: #d0d0d0;
-  color: #333;
+  background: var(--bg-tertiary);
+  border-color: var(--border-color);
+  color: var(--text-primary);
 }
 
 .provider-status-retry:hover {
-  background: #f5f5f5;
+  background: var(--bg-hover);
 }
 
 .provider-status-dismiss {
   background: transparent;
   border-color: transparent;
-  color: #888;
+  color: var(--text-secondary);
 }
 
 .provider-status-dismiss:hover {
-  color: #333;
-  background: rgba(0, 0, 0, 0.05);
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.05);
 }

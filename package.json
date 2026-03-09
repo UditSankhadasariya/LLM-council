@@ -1,5 +1,9 @@
 {
   "devDependencies": {
     "concurrently": "^9.2.1"
+  },
+  "dependencies": {
+    "jsdom": "^28.1.0",
+    "playwright-core": "^1.58.2"
   }
 }

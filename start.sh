@@ -1,22 +1,20 @@
 #!/bin/bash
 
-# LLM Council — single command to start backend + frontend with visible logs
-# Usage:  ./start.sh        (start both with color-coded logs)
-#         Ctrl+C             (stop both)
-
-set -e
+# LLM Council — kill any existing backend on 8001 and restart in background
+# Usage:  ./start.sh
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$SCRIPT_DIR"
 
-echo ""
-echo "LLM Council is starting..."
-echo "  Backend:  http://localhost:8001"
-echo "  Frontend: http://localhost:5173"
-echo ""
+# Kill anything on port 8001
+PIDS=$(lsof -ti :8001 2>/dev/null)
+if [ -n "$PIDS" ]; then
+  echo "Killing existing process(es) on port 8001: $PIDS"
+  kill -9 $PIDS
+fi
 
-npx concurrently \
-  -n "backend,frontend" \
-  -c "cyan,magenta" \
-  "python -m backend.main" \
-  "cd frontend && npm run dev"
+# Start backend in background, detached from terminal
+(nohup uv run python -m backend.main > council.log 2>&1 &)
+
+echo "Backend started in background → http://localhost:8001"
+echo "Logs: tail -f $SCRIPT_DIR/council.log"

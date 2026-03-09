@@ -1,66 +1,67 @@
 .stage {
   margin: 24px 0;
   padding: 20px;
-  background: #fafafa;
-  border-radius: 8px;
-  border: 1px solid #e0e0e0;
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  border: 1px solid var(--border-light);
 }
 
 .stage-title {
   margin: 0 0 16px 0;
-  color: #333;
+  color: var(--text-primary);
   font-size: 16px;
   font-weight: 600;
 }
 
 .tabs {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   margin-bottom: 16px;
   flex-wrap: wrap;
 }
 
 .tab {
   padding: 8px 16px;
-  background: #ffffff;
-  border: 1px solid #d0d0d0;
-  border-radius: 6px 6px 0 0;
-  color: #666;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px 8px 0 0;
+  color: var(--text-secondary);
   cursor: pointer;
-  font-size: 14px;
-  transition: all 0.2s;
+  font-size: 13px;
+  font-family: inherit;
+  transition: all 0.15s;
 }
 
 .tab:hover {
-  background: #f0f0f0;
-  color: #333;
-  border-color: #4a90e2;
+  background: var(--bg-hover);
+  color: var(--text-primary);
+  border-color: var(--accent-blue);
 }
 
 .tab.active {
-  background: #ffffff;
-  color: #4a90e2;
-  border-color: #4a90e2;
-  border-bottom-color: #ffffff;
+  background: var(--bg-tertiary);
+  color: var(--accent-blue);
+  border-color: var(--accent-blue);
+  border-bottom-color: var(--bg-tertiary);
   font-weight: 600;
 }
 
 .tab-content {
-  background: #ffffff;
+  background: var(--bg-tertiary);
   padding: 16px;
-  border-radius: 6px;
-  border: 1px solid #e0e0e0;
+  border-radius: 0 8px 8px 8px;
+  border: 1px solid var(--border-light);
 }
 
 .model-name {
-  color: #888;
+  color: var(--text-tertiary);
   font-size: 12px;
   margin-bottom: 12px;
-  font-family: monospace;
+  font-family: 'SF Mono', 'Fira Code', monospace;
 }
 
 .response-text {
-  color: #333;
+  color: var(--text-primary);
   line-height: 1.6;
 }
 
@@ -69,11 +70,11 @@
   margin-left: 8px;
   font-size: 13px;
   font-weight: 400;
-  color: #888;
+  color: var(--text-tertiary);
 }
 
 .tab-pending {
-  color: #aaa;
+  color: var(--text-tertiary);
   font-style: italic;
 }
 
@@ -82,8 +83,8 @@
   width: 10px;
   height: 10px;
   margin-left: 6px;
-  border: 2px solid #ccc;
-  border-top-color: #4a90e2;
+  border: 2px solid var(--border-color);
+  border-top-color: var(--accent-blue);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
   vertical-align: middle;
@@ -98,6 +99,6 @@
   align-items: center;
   gap: 12px;
   padding: 24px;
-  color: #888;
+  color: var(--text-secondary);
   font-style: italic;
 }

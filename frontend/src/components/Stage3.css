@@ -1,25 +1,25 @@
 .stage3 {
-  background: #f0fff0;
-  border-color: #c8e6c8;
+  background: rgba(129, 201, 149, 0.06);
+  border-color: var(--accent-green-dim);
 }
 
 .final-response {
-  background: #ffffff;
+  background: var(--bg-tertiary);
   padding: 20px;
-  border-radius: 6px;
-  border: 1px solid #c8e6c8;
+  border-radius: 8px;
+  border: 1px solid var(--accent-green-dim);
 }
 
 .chairman-label {
-  color: #2d8a2d;
+  color: var(--accent-green);
   font-size: 12px;
-  font-family: monospace;
+  font-family: 'SF Mono', 'Fira Code', monospace;
   margin-bottom: 12px;
   font-weight: 600;
 }
 
 .final-text {
-  color: #333;
+  color: var(--text-primary);
   line-height: 1.7;
   font-size: 15px;
 }
