@@ -19,6 +19,7 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedDate, setSelectedDate] = useState(getToday());
   const [availableDates, setAvailableDates] = useState([]);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   // Load available dates on mount
   useEffect(() => {
@@ -221,8 +222,20 @@ function App() {
         selectedDate={selectedDate}
         availableDates={availableDates}
         onDateChange={handleDateChange}
+        isOpen={sidebarOpen}
+        onToggle={() => setSidebarOpen((v) => !v)}
       />
       <div className="main-content">
+        {!sidebarOpen && (
+          <button
+            className="sidebar-reopen-btn"
+            onClick={() => setSidebarOpen(true)}
+            title="Show sidebar"
+            aria-label="Show sidebar"
+          >
+            &#8250;
+          </button>
+        )}
         <ProviderStatus />
         <ChatInterface
           conversation={currentConversation}
